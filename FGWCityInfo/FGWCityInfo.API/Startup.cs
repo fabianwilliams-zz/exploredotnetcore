@@ -9,6 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Serialization; //Added if i want to stop CAML casing on return JSON objects by overriding Serializing Setting in MVC now commented
 using Microsoft.AspNetCore.Mvc.Formatters;
+using FGWCityInfo.API.Entities;
+using Microsoft.EntityFrameworkCore;
+using FGWCityInfo.API.Helper;
 
 namespace FGWCityInfo.API
 {
@@ -28,6 +31,10 @@ namespace FGWCityInfo.API
                         new XmlDataContractSerializerOutputFormatter()
                        )));
 
+            var connString = @"Server=127.0.0.1;Database=CityInfoDb;User Id=sa;Password=P@ssw0rd1!;";
+
+            services.AddDbContext<CityInfoContext>(o => o.UseSqlServer(connString));
+
             //services.AddMvc()
             //        .AddJsonOptions((o => {
             //            if (o.SerializerSettings.ContractResolver != null)
@@ -40,7 +47,8 @@ namespace FGWCityInfo.API
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, 
+                              CityInfoContext cityInfoContext)
         {
             loggerFactory.AddConsole();
 
@@ -54,6 +62,9 @@ namespace FGWCityInfo.API
             {
                 app.UseExceptionHandler();
             }
+
+            //uses to seed the SQLCore Database in the Docker Container
+            cityInfoContext.EnsureSeedDataForContext();
 
             //to ensure that pages done just bomb out
             app.UseStatusCodePages();
